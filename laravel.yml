@@ -2,7 +2,7 @@
 - hosts: laravel
   become: true
   vars:
-    laravel_index: 1  # default if not provided, override with --extra-vars
+    laravel_index: 1  # override with --extra-vars if needed
     db_name: laravel_db
     db_user: laravel_user
     db_pass: laravel_password
@@ -31,7 +31,7 @@
         tag: "5.7"
         source: pull
 
-    - name: Run MySQL container for Laravel instance
+    - name: Run MySQL container for Laravel
       community.docker.docker_container:
         name: "laravel{{ laravel_index }}-db"
         image: mysql:5.7
@@ -47,13 +47,13 @@
         volumes:
           - "laravel{{ laravel_index }}-db-data:/var/lib/mysql"
 
-    - name: Pull Laravel image
+    - name: Pull Bitnami Laravel image
       community.docker.docker_image:
         name: "bitnami/laravel"
         tag: latest
         source: pull
 
-    - name: Run Laravel container for Laravel instance
+    - name: Run Laravel container
       community.docker.docker_container:
         name: "laravel{{ laravel_index }}"
         image: "bitnami/laravel:latest"
@@ -65,8 +65,8 @@
           DB_USERNAME: "{{ db_user }}"
           DB_PASSWORD: "{{ db_pass }}"
         ports:
-          - "{{ 9000 + laravel_index | int }}:9000"   # Laravel PHP-FPM default port
+          - "{{ 8000 + laravel_index | int }}:3000"  # Laravel container listens on 3000
         networks:
           - name: "laravel{{ laravel_index }}-net"
         volumes:
-          - "laravel{{ laravel_index }}-data:/var/www/html"
+          - "laravel{{ laravel_index }}-data:/app"
