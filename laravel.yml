@@ -1,0 +1,71 @@
+---
+- hosts: laravel
+  become: true
+  vars:
+    laravel_index: 1  # default if not provided, override with --extra-vars
+    db_name: laravel_db
+    db_user: laravel_user
+    db_pass: laravel_password
+    db_root_pass: example_root_password
+  tasks:
+    - name: Ensure pip is installed
+      apt:
+        name: python3-pip
+        state: present
+
+    - name: Install Docker SDK and requests
+      pip:
+        name:
+          - docker
+          - requests
+        executable: pip3
+
+    - name: Create Docker network for Laravel instance
+      community.docker.docker_network:
+        name: "laravel{{ laravel_index }}-net"
+        state: present
+
+    - name: Pull MySQL image
+      community.docker.docker_image:
+        name: mysql
+        tag: "5.7"
+        source: pull
+
+    - name: Run MySQL container for Laravel instance
+      community.docker.docker_container:
+        name: "laravel{{ laravel_index }}-db"
+        image: mysql:5.7
+        state: started
+        restart_policy: always
+        env:
+          MYSQL_ROOT_PASSWORD: "{{ db_root_pass }}"
+          MYSQL_DATABASE: "{{ db_name }}"
+          MYSQL_USER: "{{ db_user }}"
+          MYSQL_PASSWORD: "{{ db_pass }}"
+        networks:
+          - name: "laravel{{ laravel_index }}-net"
+        volumes:
+          - "laravel{{ laravel_index }}-db-data:/var/lib/mysql"
+
+    - name: Pull Laravel PHP-FPM image
+      community.docker.docker_image:
+        name: "laravelphp/php-fpm"
+        source: pull
+
+    - name: Run Laravel container for Laravel instance
+      community.docker.docker_container:
+        name: "laravel{{ laravel_index }}"
+        image: "laravelphp/php-fpm"
+        state: started
+        restart_policy: always
+        env:
+          DB_HOST: "laravel{{ laravel_index }}-db"
+          DB_DATABASE: "{{ db_name }}"
+          DB_USERNAME: "{{ db_user }}"
+          DB_PASSWORD: "{{ db_pass }}"
+        ports:
+          - "{{ 9000 + laravel_index | int }}:9000"   # Laravel PHP-FPM default port
+        networks:
+          - name: "laravel{{ laravel_index }}-net"
+        volumes:
+          - "laravel{{ laravel_index }}-data:/var/www/html"
