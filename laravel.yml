@@ -49,7 +49,7 @@
 
     - name: Pull Laravel image
       community.docker.docker_image:
-        name: ""bitnami/laravel"
+        name: "bitnami/laravel"
         tag: latest
         source: pull
 
