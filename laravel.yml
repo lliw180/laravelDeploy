@@ -65,7 +65,7 @@
           DB_USERNAME: "{{ db_user }}"
           DB_PASSWORD: "{{ db_pass }}"
         ports:
-          - "{{ 8000 + laravel_index | int }}:3000"  # Laravel container listens on 3000
+          - "{{ 8000 + laravel_index | int }}:8080"  # Laravel container listens on 8080
         networks:
           - name: "laravel{{ laravel_index }}-net"
         volumes:
