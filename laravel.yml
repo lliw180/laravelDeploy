@@ -47,15 +47,16 @@
         volumes:
           - "laravel{{ laravel_index }}-db-data:/var/lib/mysql"
 
-    - name: Pull Laravel PHP-FPM image
+    - name: Pull Laravel image
       community.docker.docker_image:
-        name: "laravelphp/php-fpm"
+        name: ""bitnami/laravel"
+        tag: latest
         source: pull
 
     - name: Run Laravel container for Laravel instance
       community.docker.docker_container:
         name: "laravel{{ laravel_index }}"
-        image: "laravelphp/php-fpm"
+        image: "bitnami/laravel:latest"
         state: started
         restart_policy: always
         env:
